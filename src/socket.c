@@ -22,6 +22,11 @@
 
 /* Shared with SSL */
 
+void us_socket_shutdown_read(int ssl, struct us_socket_t *s) {
+    /* This syscall is idempotent so no extra check is needed */
+    bsd_shutdown_socket_read(us_poll_fd((struct us_poll_t *) s));
+}
+
 void us_socket_remote_address(int ssl, struct us_socket_t *s, char *buf, int *length) {
     struct bsd_addr_t addr;
     if (bsd_socket_addr(us_poll_fd(&s->p), &addr) || *length < bsd_addr_get_ip_length(&addr)) {
@@ -38,8 +43,7 @@ struct us_socket_context_t *us_socket_context(int ssl, struct us_socket_t *s) {
 
 void us_socket_timeout(int ssl, struct us_socket_t *s, unsigned int seconds) {
     if (seconds) {
-        unsigned short timeout_sweeps = (unsigned short) (0.5f + ((float) seconds) / ((float) LIBUS_TIMEOUT_GRANULARITY));
-        s->timeout = timeout_sweeps ? timeout_sweeps : 1;
+        s->timeout = 0x8000 | (s->context->timestamp + (seconds >> 2));
     } else {
         s->timeout = 0;
     }

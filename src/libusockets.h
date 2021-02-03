@@ -87,6 +87,9 @@ struct us_socket_context_options_t {
     int ssl_prefer_low_memory_usage; /* Todo: rename to prefer_low_memory_usage and apply for TCP as well */
 };
 
+/* Return 15-bit timestamp for this context */
+WIN32_EXPORT unsigned short us_socket_context_timestamp(int ssl, struct us_socket_context_t *context);
+
 /* Adds SNI domain and cert in asn1 format */
 WIN32_EXPORT void us_socket_context_add_server_name(int ssl, struct us_socket_context_t *context, const char *hostname_pattern, struct us_socket_context_options_t options);
 WIN32_EXPORT void us_socket_context_remove_server_name(int ssl, struct us_socket_context_t *context, const char *hostname_pattern);
@@ -221,6 +224,11 @@ WIN32_EXPORT void us_socket_flush(int ssl, struct us_socket_t *s);
 
 /* Shuts down the connection by sending FIN and/or close_notify */
 WIN32_EXPORT void us_socket_shutdown(int ssl, struct us_socket_t *s);
+
+/* Shuts down the connection in terms of read, meaning next event loop
+ * iteration will catch the socket being closed. Can be used to defer closing
+ * to next event loop iteration. */
+WIN32_EXPORT void us_socket_shutdown_read(int ssl, struct us_socket_t *s);
 
 /* Returns whether the socket has been shut down or not */
 WIN32_EXPORT int us_socket_is_shut_down(int ssl, struct us_socket_t *s);
